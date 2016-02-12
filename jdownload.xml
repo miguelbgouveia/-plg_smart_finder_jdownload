@@ -10,7 +10,6 @@
     <version>3.0.0</version>
     <description>PLG_FINDER_JDOWNLOAD_XML_DESCRIPTION</description>
     <files>
-        <file plugin="jdownload">jdownlaod.php</file>
+        <file plugin="jdownload">jdownload.php</file>
     </files>
-
 </extension>
