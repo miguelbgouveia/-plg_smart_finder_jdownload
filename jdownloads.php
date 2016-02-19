@@ -16,6 +16,13 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     protected $state_field = 'published';
     protected $autoloadLanguage = true;
 
+    public function onFinderCategoryChangeState($extension, $pks, $value) {
+        // Make sure we're handling com_contact categories
+        if ($extension == 'com_jdownloads') {
+            $this->categoryStateChange($pks, $value);
+        }
+    }
+
     public function onFinderAfterDelete($context, $table) {
         if ($context == 'com_jdownloads.download') {
             $id = $table->file_id;
@@ -26,6 +33,50 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         }
         // Remove the items.
         return $this->remove($id);
+    }
+
+    public function onFinderAfterSave($context, $row, $isNew) {
+        // We only want to handle contacts here
+        if ($context == 'com_jdownloads.download') {
+            // Check if the access levels are different
+            if (!$isNew && $this->old_access != $row->access) {
+                // Process the change.
+                $this->itemAccessChange($row);
+            }
+
+            // Reindex the item
+            $this->reindex($row->file_id);
+        }
+
+        // Check for access changes in the category
+        if ($context == 'com_jdownloads.category') {
+            // Check if the access levels are different
+            if (!$isNew && $this->old_cataccess != $row->access) {
+                $this->categoryAccessChange($row);
+            }
+        }
+
+        return true;
+    }
+
+    public function onFinderBeforeSave($context, $row, $isNew) {
+        // We only want to handle contacts here
+        if ($context == 'com_jdownloads.download') {
+            // Query the database for the old access level if the item isn't new
+            if (!$isNew) {
+                $this->checkItemAccess($row);
+            }
+        }
+
+        // Check for access levels from the category
+        if ($context == 'com_jdownloads.category') {
+            // Query the database for the old access level if the item isn't new
+            if (!$isNew) {
+                $this->checkCategoryAccess($row);
+            }
+        }
+
+        return true;
     }
 
     public function onFinderChangeState($context, $pks, $value) {
@@ -73,13 +124,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
 
         // Handle the contact position.                
         $item->addInstruction(FinderIndexer::META_CONTEXT, 'secretary');
-        /* $item->addInstruction(FinderIndexer::META_CONTEXT, 'title');
-          $item->addInstruction(FinderIndexer::META_CONTEXT, 'description');
-          $item->addInstruction(FinderIndexer::META_CONTEXT, 'published');
-          $item->addInstruction(FinderIndexer::META_CONTEXT, 'access');
-          $item->addInstruction(FinderIndexer::META_CONTEXT, 'author');
-          $item->addInstruction(FinderIndexer::META_CONTEXT, 'publish_start_date');
-         */
+
         // Add the type taxonomy data.
         $item->addTaxonomy('Type', 'JDownloads');
 
@@ -143,14 +188,6 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         return 'index.php?option=' . $extension . '&view=' . $view . '&id=' . $id;
     }
 
-    /**
-     * Method to get a SQL query to load the published and access states for
-     * a news feed and category.
-     *
-     * @return  JDatabaseQuery  A database object.
-     *
-     * @since   2.0
-     */
     protected function getStateQuery() {
         $sql = $this->db->getQuery(true);
         $sql->select($this->db->quoteName('a.file_id'));
