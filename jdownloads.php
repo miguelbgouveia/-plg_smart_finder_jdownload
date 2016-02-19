@@ -17,7 +17,6 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     protected $autoloadLanguage = true;
 
     public function onFinderCategoryChangeState($extension, $pks, $value) {
-        // Make sure we're handling com_contact categories
         if ($extension == 'com_jdownloads') {
             $this->categoryStateChange($pks, $value);
         }
@@ -31,26 +30,20 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         } else {
             return true;
         }
-        // Remove the items.
         return $this->remove($id);
     }
 
     public function onFinderAfterSave($context, $row, $isNew) {
-        // We only want to handle contacts here
+
         if ($context == 'com_jdownloads.download') {
-            // Check if the access levels are different
             if (!$isNew && $this->old_access != $row->access) {
-                // Process the change.
                 $this->itemAccessChange($row);
             }
 
-            // Reindex the item
             $this->reindex($row->file_id);
         }
 
-        // Check for access changes in the category
         if ($context == 'com_jdownloads.category') {
-            // Check if the access levels are different
             if (!$isNew && $this->old_cataccess != $row->access) {
                 $this->categoryAccessChange($row);
             }
@@ -60,17 +53,14 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     public function onFinderBeforeSave($context, $row, $isNew) {
-        // We only want to handle contacts here
+
         if ($context == 'com_jdownloads.download') {
-            // Query the database for the old access level if the item isn't new
             if (!$isNew) {
                 $this->checkItemAccess($row);
             }
         }
 
-        // Check for access levels from the category
         if ($context == 'com_jdownloads.category') {
-            // Query the database for the old access level if the item isn't new
             if (!$isNew) {
                 $this->checkCategoryAccess($row);
             }
@@ -80,85 +70,72 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     public function onFinderChangeState($context, $pks, $value) {
-        // We only want to handle podcast feeds here
+
         if ($context == 'com_jdownloads.download') {
             $this->itemStateChange($pks, $value);
         }
-        // Handle when the plugin is disabled
         if ($context == 'com_plugins.plugin' && $value === 0) {
             $this->pluginDisable($pks);
         }
     }
 
     protected function index(FinderIndexerResult $item, $format = 'html') {
-        // Check if the extension is enabled
+
         if (JComponentHelper::isEnabled($this->extension) == false) {
             return;
         }
 
         $item->setLanguage();
 
-        // Initialize the item parameters.
         $registry = new Registry;
         $registry->loadString($item->params);
         $item->params = $registry;
 
-        // Initialize the item parameters.
         $registry = new Registry;
         $registry->loadString($item->info);
         $item->info = $registry;
 
-        // Build the necessary route and path information.
         $item->url = $this->getUrl($item->file_id, $this->extension, $this->layout);
         $item->route = JdownloadsHelperRoute::getDownloadRoute($item->slug, 0, $item->language);
         $item->path = FinderIndexerHelper::getContentPath($item->route);
 
 
-        // Get the menu title if it exists.
         $title = $this->getItemMenuTitle($item->url);
 
-        // Adjust the title if necessary.
         if (!empty($title) && $this->params->get('file_title', true)) {
             $item->title = $title;
         }
 
-        // Handle the contact position.                
         $item->addInstruction(FinderIndexer::META_CONTEXT, 'secretary');
 
-        // Add the type taxonomy data.
         $item->addTaxonomy('Type', 'JDownloads');
 
-        // Get content extras.
         FinderIndexerHelper::getContentExtras($item);
 
-
-        // Index the item.
         $test = $this->indexer->index($item);
     }
 
     protected function setup() {
-        // Load dependent classes.
+
         require_once JPATH_SITE . '/components/com_jdownloads/helpers/route.php';
 
-        // This is a hack to get around the lack of a route helper.
         FinderIndexerHelper::getContentPath('index.php?option=com_jdownloads');
 
         return true;
     }
 
     protected function getListQuery($query = null) {
+
         $db = JFactory::getDbo();
 
-        // Check if we can use the supplied SQL query.
         $query = $query instanceof JDatabaseQuery ? $query : $db->getQuery(true)
                         ->select('a.file_id, a.file_title as title, a.file_alias, a.description, a.url_download AS info')
-                        ->select('a.published as state, a.cat_id')
+                        ->select('a.published as state, a.cat_id, a.description as summary')
                         ->select('a.created_by, a.modified_date, a.modified_by')
                         ->select('a.metakey, a.metadesc, a.file_language, a.access')
                         ->select('a.publish_from AS publish_start_date, a.publish_to AS publish_end_date')
                         ->select('c.title AS category, c.published AS cat_state, c.access AS cat_access');
 
-        // Handle the alias CASE WHEN portion of the query
         $case_when_item_alias = ' CASE WHEN ';
         $case_when_item_alias .= $query->charLength('a.file_alias', '!=', '0');
         $case_when_item_alias .= ' THEN ';
@@ -189,12 +166,13 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     protected function getStateQuery() {
+
         $sql = $this->db->getQuery(true);
         $sql->select($this->db->quoteName('a.file_id'));
         $sql->select($this->db->quoteName('a.' . $this->state_field, 'state'));
         $sql->select('NULL AS cat_state');
         $sql->from($this->db->quoteName($this->table, 'a'));
+
         return $sql;
     }
-
 }
