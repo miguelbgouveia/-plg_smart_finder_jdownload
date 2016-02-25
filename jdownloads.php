@@ -14,6 +14,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     protected $type_title = 'jdownloads';
     protected $table = '#__jdownloads_files';
     protected $state_field = 'published';
+    protected $identifier_field = 'file_id';
     protected $autoloadLanguage = true;
 
     public function onFinderCategoryChangeState($extension, $pks, $value) {
@@ -34,8 +35,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     public function onFinderAfterSave($context, $row, $isNew) {
-
-        if ($context == 'com_jdownloads.download') {
+        if ($context == 'com_jdownloads.form') {
             if (!$isNew && $this->old_access != $row->access) {
                 $this->itemAccessChange($row);
             }
