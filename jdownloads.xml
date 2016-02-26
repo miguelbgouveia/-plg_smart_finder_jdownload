@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3" type="plugin" group="finder" method="upgrade">
-	<name>Pesquisa inteligente - Jdownloads</name>
-	<author>Pagesp</author>
-	<creationDate>17/02/2016</creationDate>
-	<copyright>Pagesp</copyright>
-	<license>GNU/GPL</license>
-	<authorEmail>Pagesp@gov-madeira.pt</authorEmail>
-	<authorUrl></authorUrl>
-	<version>3.1.0</version>
-	<description>PLG_FINDER_JDOWNLOAD</description>
-	<files>
-		<file plugin="jdownloads">jdownloads.php</file>
-	</files>
-	<install>
-            <sql>
-                <file driver="mysql" charset="utf8">install.mysql.utf8.sql</file>
-            </sql>
-        </install>
+    <name>Pesquisa inteligente - Jdownloads</name>
+    <author>Pagesp</author>
+    <creationDate>17/02/2016</creationDate>
+    <copyright>Pagesp</copyright>
+    <license>GNU/GPL</license>
+    <authorEmail>Pagesp@gov-madeira.pt</authorEmail>
+    <authorUrl></authorUrl>
+    <version>3.1.0</version>
+    <description>PLG_FINDER_JDOWNLOAD</description>
+    <scriptfile>script.php</scriptfile>
+    <files>
+        <file plugin="jdownloads">jdownloads.php</file>
+        <filename>index.html</filename>
+        <filename>install.mysql.utf8.sql</filename>     
+        <filename>sqluninstall.mysql.utf8.sql</filename>           
+    </files>
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">install.mysql.utf8.sql</file>
+        </sql>
+    </install>
+    <uninstall> 		
+        <sql>			
+            <file driver="mysql" charset="utf8">sqluninstall.mysql.utf8.sql</file>		
+        </sql>	
+    </uninstall>
 </extension>
