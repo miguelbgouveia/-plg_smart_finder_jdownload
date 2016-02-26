@@ -12,4 +12,9 @@
 	<files>
 		<file plugin="jdownloads">jdownloads.php</file>
 	</files>
+	<install>
+            <sql>
+                <file driver="mysql" charset="utf8">install.mysql.utf8.sql</file>
+            </sql>
+        </install>
 </extension>
