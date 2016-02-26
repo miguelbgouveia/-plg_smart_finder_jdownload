@@ -23,7 +23,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     public function onFinderAfterDelete($context, $table) {
-        if ($context == 'com_jdownloads') {
+        if ($context == 'com_jdownloads.download') {
             $id = $table->file_id;
         } elseif ($context == 'com_finder.index') {
             $id = $table->link_id;
@@ -34,27 +34,44 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     public function onFinderAfterSave($context, $row, $isNew) {
-        if ($context == 'com_jdownloads') {
+
+        if ($context == 'com_jdownloads.download') {
             if (!$isNew && $this->old_access != $row->access) {
                 $this->itemAccessChange($row);
             }
-            
+
+            $this->reindex($row->file_id);
         }
-        $this->reindex($row->file_id);
+
+        if ($context == 'com_jdownloads.category') {
+            if (!$isNew && $this->old_cataccess != $row->access) {
+                $this->categoryAccessChange($row);
+            }
+        }
+
         return true;
     }
 
     public function onFinderBeforeSave($context, $row, $isNew) {
-        if ($context == 'com_jdownloads') {
+
+        if ($context == 'com_jdownloads.download') {
             if (!$isNew) {
                 $this->checkItemAccess($row);
             }
         }
+
+        if ($context == 'com_jdownloads.category') {
+            if (!$isNew) {
+                $this->checkCategoryAccess($row);
+            }
+        }
+
         return true;
     }
 
     public function onFinderChangeState($context, $pks, $value) {
-        if ($context == 'com_jdownloads') {
+
+        if ($context == 'com_jdownloads.download') {
             $this->itemStateChange($pks, $value);
         }
         if ($context == 'com_plugins.plugin' && $value === 0) {
@@ -63,6 +80,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     protected function index(FinderIndexerResult $item, $format = 'html') {
+
         if (JComponentHelper::isEnabled($this->extension) == false) {
             return;
         }
@@ -147,14 +165,14 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         return 'index.php?option=' . $extension . '&view=' . $view . '&id=' . $id;
     }
 
-     protected function getStateQuery() {
+    protected function getStateQuery() {
 
-      $sql = $this->db->getQuery(true);
-      $sql->select($this->db->quoteName('a.file_id'));
-      $sql->select($this->db->quoteName('a.' . $this->state_field, 'state'));
-      $sql->select('NULL AS cat_state');
-      $sql->from($this->db->quoteName($this->table, 'a'));
+        $sql = $this->db->getQuery(true);
+        $sql->select($this->db->quoteName('a.file_id'));
+        $sql->select($this->db->quoteName('a.' . $this->state_field, 'state'));
+        $sql->select('NULL AS cat_state');
+        $sql->from($this->db->quoteName($this->table, 'a'));
 
-      return $sql;
-      } 
+        return $sql;
+    }
 }

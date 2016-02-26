@@ -11,12 +11,5 @@
 	<description>PLG_FINDER_JDOWNLOAD</description>
 	<files>
 		<file plugin="jdownloads">jdownloads.php</file>
-		<filename>index.html</filename>
-		<filename>install.mysql.utf8.sql</filename>
 	</files>
-	<install>
-		<sql>
-			<file driver="mysql" charset="utf8">install.mysql.utf8.sql</file>
-		</sql>
-	</install>
 </extension>
