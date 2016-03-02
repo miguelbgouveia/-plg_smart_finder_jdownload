@@ -24,7 +24,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     public function onFinderAfterDelete($context, $table) {
-        if ($context == 'com_jdownloads.download') {
+        if ($this->isInJdownloadsContext($context)) {
             $id = $table->file_id;
         } elseif ($context == 'com_finder.index') {
             $id = $table->link_id;
@@ -35,7 +35,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     }
 
     public function onFinderAfterSave($context, $row, $isNew) {
-        if ($context == 'com_jdownloads.form') {
+        if ($this->isInJdownloadsContext($context)) {
             if (!$isNew && $this->old_access != $row->access) {
                 $this->itemAccessChange($row);
             }
@@ -54,7 +54,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
 
     public function onFinderBeforeSave($context, $row, $isNew) {
 
-        if ($context == 'com_jdownloads.download') {
+        if ($this->isInJdownloadsContext($context)) {
             if (!$isNew) {
                 $this->checkItemAccess($row);
             }
@@ -71,7 +71,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
 
     public function onFinderChangeState($context, $pks, $value) {
 
-        if ($context == 'com_jdownloads.download') {
+        if ($this->isInJdownloadsContext($context)) {
             $this->itemStateChange($pks, $value);
         }
         if ($context == 'com_plugins.plugin' && $value === 0) {
@@ -174,5 +174,11 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         $sql->from($this->db->quoteName($this->table, 'a'));
 
         return $sql;
+    }
+
+    private function isInJdownloadsContext($context)
+    {
+      return $context == 'com_jdownloads.form' ||
+             $context == 'com_jdownloads.download';
     }
 }
