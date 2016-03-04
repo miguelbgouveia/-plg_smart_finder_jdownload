@@ -16,6 +16,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     protected $state_field = 'published';
     protected $identifier_field = 'file_id';
     protected $autoloadLanguage = true;
+    
 
     public function onFinderCategoryChangeState($extension, $pks, $value) {
         if ($extension == 'com_jdownloads') {
