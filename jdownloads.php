@@ -8,6 +8,8 @@ require_once JPATH_ADMINISTRATOR . '/components/com_finder/helpers/indexer/adapt
 
 class PlgFinderjdownloads extends FinderIndexerAdapter {
 
+  private $category_table = '#__jdownloads_categories';
+
     protected $context = 'JDownloads';
     protected $extension = 'com_jdownloads';
     protected $layout = 'download';
@@ -16,7 +18,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     protected $state_field = 'published';
     protected $identifier_field = 'file_id';
     protected $autoloadLanguage = true;
-    
+
 
     public function onFinderCategoryChangeState($extension, $pks, $value) {
         if ($extension == 'com_jdownloads') {
@@ -155,8 +157,8 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         $case_when_category_alias .= $c_id . ' END as catslug';
         $query->select($case_when_category_alias)
                 ->select('us.name AS secretary')
-                ->from('#__jdownloads_files AS a')
-                ->join('LEFT', '#__categories AS c ON c.id = a.cat_id')
+                ->from($this->table . ' AS a')
+                ->join('LEFT', $this->category_table . ' AS c ON c.id = a.cat_id')
                 ->join('LEFT', '#__users AS us ON us.id = a.file_title');
 
         return $query;
@@ -166,15 +168,22 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         return 'index.php?option=' . $extension . '&view=' . $view . '&id=' . $id;
     }
 
-    protected function getStateQuery() {
+    protected function getStateQuery()
+    {
+        $query = $this->db->getQuery(true);
 
-        $sql = $this->db->getQuery(true);
-        $sql->select($this->db->quoteName('a.file_id'));
-        $sql->select($this->db->quoteName('a.' . $this->state_field, 'state'));
-        $sql->select('NULL AS cat_state');
-        $sql->from($this->db->quoteName($this->table, 'a'));
+        // Item ID
+        $query->select('a.' . $this->identifier_field . ' AS id');
 
-        return $sql;
+        // Item and category published state
+        $query->select('a.' . $this->state_field . ' AS state, c.published AS cat_state');
+
+        // Item and category access levels
+        $query->select('a.access, c.access AS cat_access')
+          ->from($this->table . ' AS a')
+          ->join('LEFT', $this->category_table . ' AS c ON c.id = a.cat_id');
+
+        return $query;
     }
 
     private function isInJdownloadsContext($context)
