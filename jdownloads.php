@@ -8,7 +8,7 @@ require_once JPATH_ADMINISTRATOR . '/components/com_finder/helpers/indexer/adapt
 
 class PlgFinderjdownloads extends FinderIndexerAdapter {
 
-  private $category_table = '#__jdownloads_categories';
+    private $category_table = '#__jdownloads_categories';
 
     protected $context = 'JDownloads';
     protected $extension = 'com_jdownloads';
@@ -111,6 +111,9 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
 
         $item->addInstruction(FinderIndexer::META_CONTEXT, 'secretary');
 
+        // Translate the state. downloads should only be published if the category is published.
+        $item->state = $this->translateState($item->state, $item->cat_state);
+
         $item->addTaxonomy('Type', 'JDownloads');
 
         FinderIndexerHelper::getContentExtras($item);
@@ -184,6 +187,28 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
           ->join('LEFT', $this->category_table . ' AS c ON c.id = a.cat_id');
 
         return $query;
+    }
+
+    /**
+     * Method to check the existing access level for categories
+     *
+     * @param   JTable  $row  A JTable object
+     *
+     * @return  void
+     *
+     * @since   2.5
+     */
+    protected function checkCategoryAccess($row)
+    {
+      $query = $this->db->getQuery(true)
+        ->select($this->db->quoteName('access'))
+        ->from($this->db->quoteName($this->category_table))
+        ->where($this->db->quoteName('id') . ' = ' . (int) $row->id);
+
+      $this->db->setQuery($query);
+
+      // Store the access level to determine if it changes
+      $this->old_cataccess = $this->db->loadResult();
     }
 
     private function isInJdownloadsContext($context)
