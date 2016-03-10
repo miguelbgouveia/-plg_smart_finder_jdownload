@@ -115,6 +115,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
         $item->state = $this->translateState($item->state, $item->cat_state);
 
         $item->addTaxonomy('Type', 'JDownloads');
+        $item->addTaxonomy('Category', $item->category, $item->cat_state, $item->cat_access);
 
         FinderIndexerHelper::getContentExtras($item);
 
@@ -140,7 +141,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
                         ->select('a.created_by, a.modified_date, a.modified_by')
                         ->select('a.metakey, a.metadesc, a.file_language, a.access')
                         ->select('a.publish_from AS publish_start_date, a.publish_to AS publish_end_date')
-                        ->select('c.title AS category, c.published AS cat_state, c.access AS cat_access');
+                        ->select('c.cat_dir AS category, c.published AS cat_state, c.access AS cat_access');
 
         $case_when_item_alias = ' CASE WHEN ';
         $case_when_item_alias .= $query->charLength('a.file_alias', '!=', '0');
