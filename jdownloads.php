@@ -19,9 +19,8 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
     protected $identifier_field = 'file_id';
     protected $autoloadLanguage = true;
 
-
     public function onFinderCategoryChangeState($extension, $pks, $value) {
-        if ($extension == 'com_jdownloads') {
+        if ($extension == 'com_jdownloads.category') {
             $this->categoryStateChange($pks, $value);
         }
     }
@@ -111,7 +110,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
 
         $item->addInstruction(FinderIndexer::META_CONTEXT, 'secretary');
 
-        // Translate the state. downloads should only be published if the category is published.
+        // Translate the state. Downloads should only be published if the category is published.
         $item->state = $this->translateState($item->state, $item->cat_state);
 
         $item->addTaxonomy('Type', 'JDownloads');
@@ -197,7 +196,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
      *
      * @return  void
      *
-     * @since   2.5
+     * @since   3.5
      */
     protected function checkCategoryAccess($row)
     {
