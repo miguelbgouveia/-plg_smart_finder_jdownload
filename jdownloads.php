@@ -49,6 +49,15 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
             if (!$isNew && $this->old_cataccess != $row->access) {
                 $this->categoryAccessChange($row);
             }
+            /************************************
+            Possibly for version 3.6 of Joomla
+            *************************************
+            // Check if the state are different.
+      			if (!$isNew && $this->old_catstate != $row->published)
+      			{
+      				$this->updateStateByCategoryId($row->id);
+      			}
+            */
         }
 
         return true;
