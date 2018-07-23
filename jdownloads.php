@@ -124,6 +124,7 @@ class PlgFinderjdownloads extends FinderIndexerAdapter {
 
         $item->addTaxonomy('Type', 'JDownloads');
         $item->addTaxonomy('Category', $item->category, $item->cat_state, $item->cat_access);
+        $item->addTaxonomy('Language', $item->language);
 
         FinderIndexerHelper::getContentExtras($item);
 
